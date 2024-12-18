@@ -4,9 +4,15 @@
 
 package frc.robot;
 
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.CANSparkLowLevel.MotorType;
+
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -20,6 +26,30 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
+  //defining drive train motors
+  //front right motor
+  private CANSparkMax r_motor_1 = new CANSparkMax(0, MotorType.kBrushless);
+  //back right motor
+  private CANSparkMax r_motor_2 = new CANSparkMax(1, MotorType.kBrushless);
+  //front left motor
+  private CANSparkMax l_motor_1 = new CANSparkMax(2, MotorType.kBrushless);
+  //back left motor
+  private CANSparkMax l_motor_2 = new CANSparkMax(3, MotorType.kBrushless);
+
+  //pivot motor definition
+  private CANSparkMax pivot_motor = new CANSparkMax(4,MotorType.kBrushless);
+
+
+  //Joysticks
+  private Joystick r_joystick = new Joystick(1);
+  private Joystick l_joystick = new Joystick(0);
+
+  //Joystick buttons
+  //Button to make pivot go Up
+  private JoystickButton pivot_up = new JoystickButton(r_joystick,2);
+  //Button to make pivot go down
+  private JoystickButton pivot_down = new JoystickButton(r_joystick,3);
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -29,6 +59,24 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+
+    //setting IdleMode
+    r_motor_1.setIdleMode(IdleMode.kBrake);
+    r_motor_2.setIdleMode(IdleMode.kBrake);
+    l_motor_1.setIdleMode(IdleMode.kBrake);
+    l_motor_2.setIdleMode(IdleMode.kBrake);
+    //Pivot IdleMode
+    pivot_motor.setIdleMode(IdleMode.kBrake);
+    //Inverting Pivot motor
+    //pivot_motor.setInverted(true);
+    //Inverting Motors
+    //r_motor_1.setInverted(true);
+    //l_motor_1.setInverted(true);
+
+    //Make back right motor follow front right motor
+    r_motor_2.follow(r_motor_1);
+    //Make back left motor follow front left motor
+    l_motor_2.follow(l_motor_1);
   }
 
   /**
@@ -78,7 +126,24 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+    //Tank Drive
+    //set motor speeds
+    //r_motor_1.set(r_joystick.getY());
+    //l_motor_1.set(l_joystick.getY());
+
+    //arcade
+    r_motor_1.set(r_joystick.getY()-r_joystick.getX());
+    l_motor_1.set(l_joystick.getY()+l_joystick.getX());
+
+    if (pivot_up.getAsBoolean()){
+      pivot_motor.set(0.5);
+    }else if (pivot_down.getAsBoolean()){
+      pivot_motor.set(-0.5);
+    }else{
+      pivot_motor.set(0);
+    }
+  }
 
   /** This function is called once when the robot is disabled. */
   @Override
